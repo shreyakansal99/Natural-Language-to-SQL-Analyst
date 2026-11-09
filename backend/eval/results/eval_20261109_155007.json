@@ -1,0 +1,74 @@
+{
+  "model": "ministral-8b-latest",
+  "summary": {
+    "evaluated": 3,
+    "gold_errors": 0,
+    "correct": 3,
+    "accuracy": 1.0,
+    "answered": 3,
+    "wrong_result": 0,
+    "no_answer": 0,
+    "correct_first_try": 3,
+    "recovered_by_retry": 0,
+    "by_category": {
+      "join": {
+        "n": 1,
+        "correct": 1
+      },
+      "date": {
+        "n": 1,
+        "correct": 1
+      },
+      "aggregation": {
+        "n": 1,
+        "correct": 1
+      }
+    },
+    "inconclusive": 0
+  },
+  "records": [
+    {
+      "id": "j3",
+      "category": "join",
+      "question": "Average order value by customer country",
+      "status": "ok",
+      "attempts": 1,
+      "sql": "SELECT c.country, ROUND(AVG(o.total), 2) AS average_order_value FROM customers_safe AS c JOIN orders_safe AS o ON c.id = o.customer_id GROUP BY c.country ORDER BY average_order_value DESC LIMIT 500",
+      "seconds": 1.6,
+      "assumptions": [
+        "Average order value is calculated as SUM(total) / COUNT(*) for each customer country"
+      ],
+      "outcome": "correct",
+      "match": "exact"
+    },
+    {
+      "id": "d9",
+      "category": "date",
+      "question": "Total revenue by region and year for 2025 and 2026",
+      "status": "ok",
+      "attempts": 1,
+      "sql": "WITH yearly_revenue AS (SELECT YEAR(o.order_date) AS year, o.region, SUM(o.total) AS total_revenue FROM orders_safe AS o WHERE YEAR(o.order_date) IN (2025, 2026) GROUP BY YEAR(o.order_date), o.region) SELECT year, region, ROUND(total_revenue, 2) AS total_revenue FROM yearly_revenue ORDER BY year, region LIMIT 500",
+      "seconds": 2.5,
+      "assumptions": [
+        "Revenue includes all orders regardless of status (completed, shipped, pending, cancelled, refunded)",
+        "Total revenue is calculated as SUM(orders_safe.total)"
+      ],
+      "outcome": "correct",
+      "match": "exact"
+    },
+    {
+      "id": "a5",
+      "category": "aggregation",
+      "question": "What is the average order value for completed orders?",
+      "status": "ok",
+      "attempts": 1,
+      "sql": "SELECT ROUND(AVG(orders_safe.total), 2) AS average_order_value_completed FROM orders_safe WHERE status = 'completed' LIMIT 500",
+      "seconds": 7.9,
+      "assumptions": [
+        "Average order value is calculated as SUM(total) per order."
+      ],
+      "outcome": "correct",
+      "match": "exact"
+    }
+  ]
+}

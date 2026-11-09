@@ -1,0 +1,80 @@
+{
+  "model": "ministral-8b-latest",
+  "summary": {
+    "evaluated": 4,
+    "gold_errors": 0,
+    "correct": 3,
+    "accuracy": 0.75,
+    "answered": 4,
+    "wrong_result": 1,
+    "no_answer": 0,
+    "correct_first_try": 3,
+    "recovered_by_retry": 0,
+    "by_category": {
+      "join": {
+        "n": 3,
+        "correct": 2
+      },
+      "date": {
+        "n": 1,
+        "correct": 1
+      }
+    },
+    "inconclusive": 0
+  },
+  "records": [
+    {
+      "id": "j1",
+      "category": "join",
+      "question": "Revenue by product category",
+      "status": "ok",
+      "attempts": 1,
+      "sql": "WITH category_revenue AS (SELECT p.category, SUM(oi.quantity * oi.unit_price) AS revenue FROM order_items_safe AS oi JOIN products_safe AS p ON oi.product_id = p.id GROUP BY p.category ORDER BY revenue DESC LIMIT 10) SELECT * FROM category_revenue LIMIT 500",
+      "seconds": 1.8,
+      "assumptions": [],
+      "outcome": "correct",
+      "match": "exact"
+    },
+    {
+      "id": "j3",
+      "category": "join",
+      "question": "Average order value by customer country",
+      "status": "ok",
+      "attempts": 1,
+      "sql": "SELECT c.country, ROUND(AVG(o.total), 2) AS average_order_value FROM customers_safe AS c JOIN orders_safe AS o ON c.id = o.customer_id WHERE o.status <> 'cancelled' AND o.status <> 'refunded' GROUP BY c.country ORDER BY c.country LIMIT 500",
+      "seconds": 1.8,
+      "assumptions": [
+        "Excluding cancelled and refunded orders to focus on valid transactions"
+      ],
+      "outcome": "wrong_result",
+      "gold_sql": "SELECT c.country, AVG(o.total) FROM orders_safe o JOIN customers_safe c ON c.id = o.customer_id GROUP BY c.country",
+      "detail": "gold: 8 rows x 2 cols, got: 8 rows x 2 cols"
+    },
+    {
+      "id": "j5",
+      "category": "join",
+      "question": "Revenue by region for the Electronics category",
+      "status": "ok",
+      "attempts": 1,
+      "sql": "WITH electronics_revenue AS (SELECT o.region, SUM(oi.quantity * oi.unit_price) AS revenue FROM order_items_safe AS oi JOIN products_safe AS p ON oi.product_id = p.id JOIN orders_safe AS o ON oi.order_id = o.id WHERE p.category = 'Electronics' GROUP BY o.region) SELECT region, revenue, ROUND(revenue / SUM(revenue) OVER (), 2) AS revenue_share FROM electronics_revenue ORDER BY revenue DESC LIMIT 500",
+      "seconds": 58.0,
+      "assumptions": [
+        "Revenue is calculated as SUM(quantity * unit_price) for Electronics category items only"
+      ],
+      "outcome": "correct",
+      "match": "extra_columns"
+    },
+    {
+      "id": "d8",
+      "category": "date",
+      "question": "How many orders were placed in the second half of 2025?",
+      "status": "ok",
+      "attempts": 1,
+      "sql": "SELECT COUNT(*) AS orders_in_second_half_2025 FROM orders_safe WHERE YEAR(order_date) = 2025 AND MONTH(order_date) BETWEEN 7 AND 12 LIMIT 500",
+      "seconds": 1.2,
+      "assumptions": [],
+      "outcome": "correct",
+      "match": "exact"
+    }
+  ]
+}

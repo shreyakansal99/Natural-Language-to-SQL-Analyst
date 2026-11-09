@@ -1,0 +1,37 @@
+{
+  "model": "ministral-8b-latest",
+  "summary": {
+    "evaluated": 1,
+    "gold_errors": 0,
+    "correct": 1,
+    "accuracy": 1.0,
+    "answered": 1,
+    "wrong_result": 0,
+    "no_answer": 0,
+    "correct_first_try": 1,
+    "recovered_by_retry": 0,
+    "by_category": {
+      "join": {
+        "n": 1,
+        "correct": 1
+      }
+    },
+    "inconclusive": 0
+  },
+  "records": [
+    {
+      "id": "j7",
+      "category": "join",
+      "question": "Number of orders per customer country",
+      "status": "ok",
+      "attempts": 1,
+      "sql": "SELECT customers_safe.country, COUNT(orders_safe.id) AS number_of_orders FROM customers_safe LEFT JOIN orders_safe ON customers_safe.id = orders_safe.customer_id GROUP BY customers_safe.country ORDER BY number_of_orders DESC LIMIT 500",
+      "seconds": 2.0,
+      "assumptions": [
+        "Counting all orders regardless of status"
+      ],
+      "outcome": "correct",
+      "match": "exact"
+    }
+  ]
+}

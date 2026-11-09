@@ -1,0 +1,53 @@
+{
+  "model": "ministral-8b-latest",
+  "summary": {
+    "evaluated": 2,
+    "gold_errors": 0,
+    "correct": 2,
+    "accuracy": 1.0,
+    "answered": 2,
+    "wrong_result": 0,
+    "no_answer": 0,
+    "correct_first_try": 2,
+    "recovered_by_retry": 0,
+    "by_category": {
+      "join": {
+        "n": 1,
+        "correct": 1
+      },
+      "date": {
+        "n": 1,
+        "correct": 1
+      }
+    },
+    "inconclusive": 0
+  },
+  "records": [
+    {
+      "id": "j4",
+      "category": "join",
+      "question": "How many customers have placed more than 6 orders?",
+      "status": "ok",
+      "attempts": 1,
+      "sql": "SELECT COUNT(*) AS customer_count FROM (SELECT customer_id FROM orders_safe GROUP BY customer_id HAVING COUNT(*) > 6) AS customers_with_multiple_orders LIMIT 500",
+      "seconds": 2.1,
+      "assumptions": [],
+      "outcome": "correct",
+      "match": "exact"
+    },
+    {
+      "id": "d1",
+      "category": "date",
+      "question": "Monthly order count for 2025",
+      "status": "ok",
+      "attempts": 1,
+      "sql": "SELECT MONTH(order_date) AS month, COUNT(*) AS order_count FROM orders_safe WHERE YEAR(order_date) = 2025 GROUP BY MONTH(order_date) ORDER BY month LIMIT 500",
+      "seconds": 1.7,
+      "assumptions": [
+        "Monthly order count includes all statuses (completed, shipped, pending, cancelled, refunded)"
+      ],
+      "outcome": "correct",
+      "match": "exact"
+    }
+  ]
+}

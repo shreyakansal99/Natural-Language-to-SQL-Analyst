@@ -1,0 +1,548 @@
+{
+  "model": "ministral-8b-latest",
+  "summary": {
+    "evaluated": 40,
+    "gold_errors": 0,
+    "correct": 38,
+    "accuracy": 0.95,
+    "answered": 39,
+    "wrong_result": 1,
+    "no_answer": 1,
+    "correct_first_try": 38,
+    "recovered_by_retry": 0,
+    "by_category": {
+      "simple": {
+        "n": 8,
+        "correct": 8
+      },
+      "grouping": {
+        "n": 9,
+        "correct": 9
+      },
+      "join": {
+        "n": 9,
+        "correct": 8
+      },
+      "date": {
+        "n": 9,
+        "correct": 8
+      },
+      "aggregation": {
+        "n": 5,
+        "correct": 5
+      }
+    },
+    "inconclusive": 0
+  },
+  "records": [
+    {
+      "id": "s1",
+      "category": "simple",
+      "question": "How many orders are there in total?",
+      "status": "ok",
+      "attempts": 1,
+      "sql": "SELECT COUNT(*) AS total_orders FROM orders_safe LIMIT 500",
+      "seconds": 1.1,
+      "assumptions": [],
+      "outcome": "correct",
+      "match": "exact"
+    },
+    {
+      "id": "s2",
+      "category": "simple",
+      "question": "How many customers are there?",
+      "status": "ok",
+      "attempts": 1,
+      "sql": "SELECT COUNT(DISTINCT id) AS total_customers FROM customers_safe LIMIT 500",
+      "seconds": 16.0,
+      "assumptions": [],
+      "outcome": "correct",
+      "match": "exact"
+    },
+    {
+      "id": "s3",
+      "category": "simple",
+      "question": "What is the average order value?",
+      "status": "ok",
+      "attempts": 1,
+      "sql": "SELECT ROUND(AVG(total), 2) AS average_order_value FROM orders_safe LIMIT 500",
+      "seconds": 1.6,
+      "assumptions": [
+        "Average order value is calculated as the sum of all order totals divided by the number of orders, including all statuses."
+      ],
+      "outcome": "correct",
+      "match": "exact"
+    },
+    {
+      "id": "s4",
+      "category": "simple",
+      "question": "What is the highest order total?",
+      "status": "ok",
+      "attempts": 1,
+      "sql": "SELECT MAX(total) AS highest_order_total FROM orders_safe LIMIT 500",
+      "seconds": 44.6,
+      "assumptions": [],
+      "outcome": "correct",
+      "match": "exact"
+    },
+    {
+      "id": "s5",
+      "category": "simple",
+      "question": "How many products are there?",
+      "status": "ok",
+      "attempts": 1,
+      "sql": "SELECT COUNT(DISTINCT products_safe.id) AS total_products FROM products_safe LIMIT 500",
+      "seconds": 1.2,
+      "assumptions": [],
+      "outcome": "correct",
+      "match": "exact"
+    },
+    {
+      "id": "s6",
+      "category": "simple",
+      "question": "How many orders were cancelled?",
+      "status": "ok",
+      "attempts": 1,
+      "sql": "SELECT COUNT(*) AS cancelled_orders_count FROM orders_safe WHERE status = 'cancelled' LIMIT 500",
+      "seconds": 53.0,
+      "assumptions": [],
+      "outcome": "correct",
+      "match": "exact"
+    },
+    {
+      "id": "s7",
+      "category": "simple",
+      "question": "What is the price of the most expensive product?",
+      "status": "ok",
+      "attempts": 1,
+      "sql": "SELECT MAX(price) AS most_expensive_product_price FROM products_safe LIMIT 500",
+      "seconds": 1.2,
+      "assumptions": [],
+      "outcome": "correct",
+      "match": "exact"
+    },
+    {
+      "id": "s8",
+      "category": "simple",
+      "question": "How many customers are in India?",
+      "status": "ok",
+      "attempts": 1,
+      "sql": "SELECT COUNT(DISTINCT id) AS customer_count_in_india FROM customers_safe WHERE country = 'India' LIMIT 500",
+      "seconds": 54.1,
+      "assumptions": [],
+      "outcome": "correct",
+      "match": "exact"
+    },
+    {
+      "id": "g1",
+      "category": "grouping",
+      "question": "Number of customers per country",
+      "status": "ok",
+      "attempts": 1,
+      "sql": "SELECT customers_safe.country, COUNT(DISTINCT customers_safe.id) AS number_of_customers FROM customers_safe GROUP BY customers_safe.country ORDER BY number_of_customers DESC LIMIT 500",
+      "seconds": 1.8,
+      "assumptions": [],
+      "outcome": "correct",
+      "match": "exact"
+    },
+    {
+      "id": "g2",
+      "category": "grouping",
+      "question": "Order count by status",
+      "status": "ok",
+      "attempts": 1,
+      "sql": "SELECT status, COUNT(*) AS order_count FROM orders_safe GROUP BY status ORDER BY order_count DESC LIMIT 500",
+      "seconds": 53.1,
+      "assumptions": [],
+      "outcome": "correct",
+      "match": "exact"
+    },
+    {
+      "id": "g3",
+      "category": "grouping",
+      "question": "Total revenue by region",
+      "status": "ok",
+      "attempts": 1,
+      "sql": "SELECT region, SUM(oi.quantity * oi.unit_price) AS total_revenue FROM order_items_safe AS oi JOIN orders_safe AS o ON oi.order_id = o.id GROUP BY region ORDER BY region LIMIT 500",
+      "seconds": 1.4,
+      "assumptions": [],
+      "outcome": "correct",
+      "match": "exact"
+    },
+    {
+      "id": "g4",
+      "category": "grouping",
+      "question": "Average order value by region",
+      "status": "ok",
+      "attempts": 1,
+      "sql": "SELECT region, ROUND(AVG(total), 2) AS average_order_value FROM orders_safe GROUP BY region ORDER BY region LIMIT 500",
+      "seconds": 53.7,
+      "assumptions": [
+        "Average order value is calculated as SUM(total) / COUNT(*) for each region",
+        "All order statuses (completed, shipped, pending, cancelled, refunded) are included"
+      ],
+      "outcome": "correct",
+      "match": "exact"
+    },
+    {
+      "id": "g5",
+      "category": "grouping",
+      "question": "How many products are in each category?",
+      "status": "ok",
+      "attempts": 1,
+      "sql": "SELECT products_safe.category, COUNT(DISTINCT products_safe.id) AS product_count FROM products_safe GROUP BY products_safe.category ORDER BY product_count DESC LIMIT 500",
+      "seconds": 1.7,
+      "assumptions": [],
+      "outcome": "correct",
+      "match": "exact"
+    },
+    {
+      "id": "g6",
+      "category": "grouping",
+      "question": "How many customers are in each region?",
+      "status": "ok",
+      "attempts": 1,
+      "sql": "SELECT region, COUNT(DISTINCT customers_safe.id) AS customer_count FROM customers_safe GROUP BY region ORDER BY region LIMIT 500",
+      "seconds": 55.3,
+      "assumptions": [],
+      "outcome": "correct",
+      "match": "exact"
+    },
+    {
+      "id": "g7",
+      "category": "grouping",
+      "question": "Average product price by category",
+      "status": "ok",
+      "attempts": 1,
+      "sql": "SELECT products_safe.category, ROUND(AVG(products_safe.price), 2) AS average_product_price FROM products_safe GROUP BY products_safe.category ORDER BY average_product_price DESC LIMIT 500",
+      "seconds": 1.5,
+      "assumptions": [],
+      "outcome": "correct",
+      "match": "exact"
+    },
+    {
+      "id": "g8",
+      "category": "grouping",
+      "question": "Order count by region and status",
+      "status": "ok",
+      "attempts": 1,
+      "sql": "SELECT orders_safe.region, orders_safe.status, COUNT(*) AS order_count FROM orders_safe GROUP BY orders_safe.region, orders_safe.status ORDER BY orders_safe.region, orders_safe.status LIMIT 500",
+      "seconds": 53.9,
+      "assumptions": [],
+      "outcome": "correct",
+      "match": "exact"
+    },
+    {
+      "id": "g9",
+      "category": "grouping",
+      "question": "What is the maximum order total in each region?",
+      "status": "ok",
+      "attempts": 1,
+      "sql": "SELECT region, MAX(total) AS max_order_total FROM orders_safe GROUP BY region ORDER BY region LIMIT 500",
+      "seconds": 1.2,
+      "assumptions": [],
+      "outcome": "correct",
+      "match": "exact"
+    },
+    {
+      "id": "j1",
+      "category": "join",
+      "question": "Revenue by product category",
+      "status": "ok",
+      "attempts": 1,
+      "sql": "SELECT products_safe.category, SUM(order_items_safe.quantity * order_items_safe.unit_price) AS revenue FROM order_items_safe JOIN products_safe ON order_items_safe.product_id = products_safe.id GROUP BY products_safe.category ORDER BY revenue DESC LIMIT 500",
+      "seconds": 45.1,
+      "assumptions": [],
+      "outcome": "correct",
+      "match": "exact"
+    },
+    {
+      "id": "j2",
+      "category": "join",
+      "question": "Top 3 product categories by units sold",
+      "status": "ok",
+      "attempts": 1,
+      "sql": "WITH category_units AS (SELECT p.category, SUM(oi.quantity) AS total_units_sold FROM order_items_safe AS oi JOIN products_safe AS p ON oi.product_id = p.id GROUP BY p.category ORDER BY total_units_sold DESC LIMIT 3) SELECT * FROM category_units LIMIT 500",
+      "seconds": 3.0,
+      "assumptions": [
+        "Units sold = SUM(quantity) across all orders, including cancelled/refunded"
+      ],
+      "outcome": "correct",
+      "match": "extra_columns"
+    },
+    {
+      "id": "j3",
+      "category": "join",
+      "question": "Average order value by customer country",
+      "status": "ok",
+      "attempts": 1,
+      "sql": "SELECT c.country, ROUND(AVG(o.total), 2) AS average_order_value FROM customers_safe AS c JOIN orders_safe AS o ON c.id = o.customer_id GROUP BY c.country ORDER BY average_order_value DESC LIMIT 500",
+      "seconds": 54.5,
+      "assumptions": [
+        "Average order value is calculated as SUM(total) / COUNT(*) for all orders (including cancelled, refunded, and pending)"
+      ],
+      "outcome": "correct",
+      "match": "exact"
+    },
+    {
+      "id": "j4",
+      "category": "join",
+      "question": "How many customers have placed more than 6 orders?",
+      "status": "ok",
+      "attempts": 1,
+      "sql": "SELECT COUNT(DISTINCT c.id) AS customers_with_more_than_6_orders FROM customers_safe AS c JOIN orders_safe AS o ON c.id = o.customer_id GROUP BY c.id HAVING COUNT(o.id) > 6 LIMIT 500",
+      "seconds": 2.1,
+      "assumptions": [],
+      "outcome": "wrong_result",
+      "gold_sql": "SELECT COUNT(*) FROM (SELECT customer_id FROM orders_safe GROUP BY customer_id HAVING COUNT(*) > 6) t",
+      "detail": "gold: 1 rows x 1 cols, got: 183 rows x 1 cols"
+    },
+    {
+      "id": "j5",
+      "category": "join",
+      "question": "Revenue by region for the Electronics category",
+      "status": "ok",
+      "attempts": 1,
+      "sql": "WITH electronics_revenue AS (SELECT o.region, SUM(oi.quantity * oi.unit_price) AS revenue FROM order_items_safe AS oi JOIN products_safe AS p ON oi.product_id = p.id JOIN orders_safe AS o ON oi.order_id = o.id WHERE p.category = 'Electronics' GROUP BY o.region) SELECT region, revenue, ROUND(revenue / NULLIF(SUM(revenue) OVER (), 0), 2) AS revenue_share FROM electronics_revenue ORDER BY revenue DESC LIMIT 500",
+      "seconds": 57.2,
+      "assumptions": [
+        "Revenue is calculated as SUM(quantity * unit_price) for Electronics category products only",
+        "Time range is the full dataset (2024-11-04 to 2026-11-04)"
+      ],
+      "outcome": "correct",
+      "match": "extra_columns"
+    },
+    {
+      "id": "j6",
+      "category": "join",
+      "question": "Top 5 customer IDs by total spend",
+      "status": "ok",
+      "attempts": 1,
+      "sql": "WITH customer_spend AS (SELECT c.id AS customer_id, SUM(oi.quantity * oi.unit_price) AS total_spend FROM customers_safe AS c JOIN orders_safe AS o ON c.id = o.customer_id JOIN order_items_safe AS oi ON o.id = oi.order_id GROUP BY c.id) SELECT customer_id, total_spend FROM customer_spend ORDER BY total_spend DESC LIMIT 5",
+      "seconds": 3.4,
+      "assumptions": [],
+      "outcome": "correct",
+      "match": "extra_columns"
+    },
+    {
+      "id": "j7",
+      "category": "join",
+      "question": "Number of orders per customer country",
+      "status": "ok",
+      "attempts": 1,
+      "sql": "SELECT c.country, COUNT(o.id) AS number_of_orders FROM customers_safe AS c JOIN orders_safe AS o ON c.id = o.customer_id GROUP BY c.country ORDER BY number_of_orders DESC LIMIT 500",
+      "seconds": 45.5,
+      "assumptions": [],
+      "outcome": "correct",
+      "match": "exact"
+    },
+    {
+      "id": "j8",
+      "category": "join",
+      "question": "Which product has the highest total revenue? Give only the product name.",
+      "status": "ok",
+      "attempts": 1,
+      "sql": "WITH product_revenue AS (SELECT p.name AS product_name, SUM(oi.quantity * oi.unit_price) AS total_revenue FROM order_items_safe AS oi JOIN products_safe AS p ON oi.product_id = p.id GROUP BY p.name ORDER BY total_revenue DESC LIMIT 1) SELECT product_name FROM product_revenue LIMIT 500",
+      "seconds": 2.0,
+      "assumptions": [],
+      "outcome": "correct",
+      "match": "exact"
+    },
+    {
+      "id": "j9",
+      "category": "join",
+      "question": "Total revenue from orders placed by customers in Germany",
+      "status": "ok",
+      "attempts": 1,
+      "sql": "SELECT SUM(oi.quantity * oi.unit_price) AS total_revenue_from_germany_orders FROM order_items_safe AS oi JOIN orders_safe AS o ON oi.order_id = o.id JOIN customers_safe AS c ON o.customer_id = c.id WHERE c.country = 'Germany' LIMIT 500",
+      "seconds": 54.2,
+      "assumptions": [],
+      "outcome": "correct",
+      "match": "exact"
+    },
+    {
+      "id": "d1",
+      "category": "date",
+      "question": "Monthly order count for 2025",
+      "status": "failed",
+      "attempts": 3,
+      "sql": "WITH monthly_order_counts AS (\n  SELECT\n    CONCAT(YEAR(order_date), '-', CAST(MONTH(order_date) AS CHAR), '-01') AS month,\n    COUNT(*) AS order_count\n  FROM\n    orders_safe\n  WHERE\n    YEAR(order_date) = 2025\n  GROUP BY\n    YEAR(order_date), MONTH(order_date)\n  ORDER BY\n    month\n)\nSELECT * FROM monthly_order_counts",
+      "seconds": 37.0,
+      "assumptions": [],
+      "outcome": "no_answer",
+      "detail": "I couldn't produce a safe, working query for that question. Try rephrasing it or narrowing it down."
+    },
+    {
+      "id": "d2",
+      "category": "date",
+      "question": "Total revenue in 2025",
+      "status": "ok",
+      "attempts": 1,
+      "sql": "WITH order_revenue_2025 AS (SELECT SUM(oi.quantity * oi.unit_price) AS total_revenue FROM order_items_safe AS oi JOIN orders_safe AS o ON oi.order_id = o.id WHERE YEAR(o.order_date) = 2025) SELECT total_revenue FROM order_revenue_2025 LIMIT 500",
+      "seconds": 4.4,
+      "assumptions": [
+        "Revenue is calculated as the sum of (quantity * unit_price) for all order items in 2025"
+      ],
+      "outcome": "correct",
+      "match": "exact"
+    },
+    {
+      "id": "d3",
+      "category": "date",
+      "question": "Quarterly order counts for 2025",
+      "status": "ok",
+      "attempts": 1,
+      "sql": "SELECT QUARTER(order_date) AS quarter, COUNT(*) AS order_count FROM orders_safe WHERE YEAR(order_date) = 2025 GROUP BY QUARTER(order_date) ORDER BY quarter LIMIT 500",
+      "seconds": 1.9,
+      "assumptions": [
+        "Quarterly order counts include all order statuses (completed, shipped, pending, cancelled, refunded)"
+      ],
+      "outcome": "correct",
+      "match": "exact"
+    },
+    {
+      "id": "d4",
+      "category": "date",
+      "question": "Total revenue by year",
+      "status": "ok",
+      "attempts": 1,
+      "sql": "SELECT YEAR(order_date) AS year, SUM(oi.quantity * oi.unit_price) AS total_revenue FROM order_items_safe AS oi JOIN orders_safe AS o ON oi.order_id = o.id GROUP BY YEAR(order_date) ORDER BY year LIMIT 500",
+      "seconds": 54.6,
+      "assumptions": [
+        "Revenue is calculated as SUM(order_items_safe.quantity * order_items_safe.unit_price)",
+        "Time range is all available data (2024-11-04 to 2026-11-04)"
+      ],
+      "outcome": "correct",
+      "match": "exact"
+    },
+    {
+      "id": "d5",
+      "category": "date",
+      "question": "How many customers signed up in 2024?",
+      "status": "ok",
+      "attempts": 1,
+      "sql": "SELECT COUNT(*) AS customers_signed_up_in_2024 FROM customers_safe WHERE YEAR(signup_date) = 2024 LIMIT 500",
+      "seconds": 1.3,
+      "assumptions": [],
+      "outcome": "correct",
+      "match": "exact"
+    },
+    {
+      "id": "d6",
+      "category": "date",
+      "question": "Customers who signed up in 2024, by region",
+      "status": "ok",
+      "attempts": 1,
+      "sql": "SELECT region, COUNT(*) AS customer_count FROM customers_safe WHERE YEAR(signup_date) = 2024 GROUP BY region ORDER BY region LIMIT 500",
+      "seconds": 53.6,
+      "assumptions": [],
+      "outcome": "correct",
+      "match": "exact"
+    },
+    {
+      "id": "d7",
+      "category": "date",
+      "question": "Which month of 2025 had the highest revenue? Give the month number.",
+      "status": "ok",
+      "attempts": 1,
+      "sql": "SELECT MONTH(order_date) AS month_number, SUM(total) AS revenue FROM orders_safe WHERE YEAR(order_date) = 2025 GROUP BY MONTH(order_date) ORDER BY revenue DESC LIMIT 1",
+      "seconds": 1.5,
+      "assumptions": [
+        "Revenue is calculated as SUM(total) from orders_safe"
+      ],
+      "outcome": "correct",
+      "match": "extra_columns"
+    },
+    {
+      "id": "d8",
+      "category": "date",
+      "question": "How many orders were placed in the second half of 2025?",
+      "status": "ok",
+      "attempts": 1,
+      "sql": "SELECT COUNT(*) AS orders_in_second_half_2025 FROM orders_safe WHERE YEAR(order_date) = 2025 AND MONTH(order_date) BETWEEN 7 AND 12 LIMIT 500",
+      "seconds": 53.4,
+      "assumptions": [
+        "Second half of 2025 is defined as July 1, 2025 to December 31, 2025"
+      ],
+      "outcome": "correct",
+      "match": "exact"
+    },
+    {
+      "id": "d9",
+      "category": "date",
+      "question": "Total revenue by region and year for 2025 and 2026",
+      "status": "ok",
+      "attempts": 1,
+      "sql": "WITH yearly_revenue AS (SELECT YEAR(o.order_date) AS year, o.region, SUM(oi.quantity * oi.unit_price) AS total_revenue FROM orders_safe AS o JOIN order_items_safe AS oi ON o.id = oi.order_id WHERE YEAR(o.order_date) IN (2025, 2026) GROUP BY YEAR(o.order_date), o.region) SELECT year, region, ROUND(total_revenue, 2) AS total_revenue FROM yearly_revenue ORDER BY year, region LIMIT 500",
+      "seconds": 3.1,
+      "assumptions": [
+        "Revenue is calculated as SUM(order_items_safe.quantity * order_items_safe.unit_price) for all orders, including cancelled/refunded/pending",
+        "Year is defined as calendar year (January 1 to December 31)"
+      ],
+      "outcome": "correct",
+      "match": "exact"
+    },
+    {
+      "id": "a1",
+      "category": "aggregation",
+      "question": "How many customers have placed at least one refunded order?",
+      "status": "ok",
+      "attempts": 1,
+      "sql": "SELECT COUNT(DISTINCT c.id) AS refunded_customers_count FROM customers_safe AS c JOIN orders_safe AS o ON c.id = o.customer_id WHERE o.status = 'refunded' LIMIT 500",
+      "seconds": 45.9,
+      "assumptions": [],
+      "outcome": "correct",
+      "match": "exact"
+    },
+    {
+      "id": "a2",
+      "category": "aggregation",
+      "question": "What percentage of orders were cancelled?",
+      "status": "ok",
+      "attempts": 1,
+      "sql": "SELECT ROUND(COUNT(CASE WHEN status = 'cancelled' THEN 1 END) * 100.0 / COUNT(*), 2) AS percentage_cancelled_orders FROM orders_safe LIMIT 500",
+      "seconds": 1.5,
+      "assumptions": [],
+      "outcome": "correct",
+      "match": "exact"
+    },
+    {
+      "id": "a3",
+      "category": "aggregation",
+      "question": "What is the total number of units sold?",
+      "status": "ok",
+      "attempts": 1,
+      "sql": "SELECT SUM(quantity) AS total_units_sold FROM order_items_safe LIMIT 500",
+      "seconds": 53.0,
+      "assumptions": [],
+      "outcome": "correct",
+      "match": "exact"
+    },
+    {
+      "id": "a4",
+      "category": "aggregation",
+      "question": "How many orders have a total above 1000?",
+      "status": "ok",
+      "attempts": 1,
+      "sql": "SELECT COUNT(*) AS orders_above_1000 FROM orders_safe WHERE total > 1000 LIMIT 500",
+      "seconds": 1.2,
+      "assumptions": [],
+      "outcome": "correct",
+      "match": "exact"
+    },
+    {
+      "id": "a5",
+      "category": "aggregation",
+      "question": "What is the average order value for completed orders?",
+      "status": "ok",
+      "attempts": 1,
+      "sql": "SELECT ROUND(AVG(total), 2) AS average_order_value_completed FROM orders_safe WHERE status = 'completed' LIMIT 500",
+      "seconds": 53.8,
+      "assumptions": [
+        "Average order value is calculated as SUM(total) / COUNT(*) for completed orders only."
+      ],
+      "outcome": "correct",
+      "match": "exact"
+    }
+  ]
+}
