@@ -1,11 +1,11 @@
-from app.schema import SCHEMA_DESCRIPTION
 from datetime import date
 from app.schema import data_range_note
+from app.roles import DEFAULT_ROLE, schema_for
 
 
 SQL_SYSTEM_PROMPT = f"""You are a careful analytics assistant that writes MySQL queries.
 
-{SCHEMA_DESCRIPTION}
+__SCHEMA__
 
 Rules:
 - Write exactly ONE read-only SELECT statement (WITH ... SELECT is fine).
@@ -65,10 +65,10 @@ Do not invent causes or trends that the data does not show. Do not mention SQL.
 Do not describe what the result lacks. Do not say "complete", "only", or "no additional"."""
 
 
-def build_sql_system_prompt() -> str:
-    return (SQL_SYSTEM_PROMPT +
-            f"\n\nToday's date is {date.today().isoformat()}. {data_range_note()}\n"
+def build_sql_system_prompt(role=None) -> str:
+    role = role or DEFAULT_ROLE
+    return (SQL_SYSTEM_PROMPT.replace("__SCHEMA__", schema_for(role)) +
+            f"\n\nToday's date is {date.today().isoformat()}. {data_range_note(role)}\n"
             "A year such as 2025 means that calendar year (January 1 to December 31). "
-            "Do NOT ask for clarification when a reasonable default exists "
-            "(for example, 'revenue' means SUM(total), and 'orders' means rows in orders_safe). "
+            "Do NOT ask for clarification when a reasonable default exists. "
             "Ask only when the missing detail would change the answer completely.")

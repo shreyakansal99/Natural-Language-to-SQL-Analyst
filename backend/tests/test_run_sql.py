@@ -1,19 +1,27 @@
 import pytest
 from fastapi.testclient import TestClient
 
+from app.config import DEMO_PASSWORD
 from app.main import app
 
 client = TestClient(app)
+_token = {}
+
+
+def headers():
+    if "t" not in _token:
+        r = client.post("/login", json={"username": "alex", "password": DEMO_PASSWORD})
+        assert r.status_code == 200
+        _token["t"] = r.json()["token"]
+    return {"Authorization": f"Bearer {_token['t']}"}
 
 
 def post(sql):
-    return client.post("/run-sql", json={"sql": sql})
+    return client.post("/run-sql", json={"sql": sql}, headers=headers())
 
 
 def test_valid_edit_runs():
-    r = post("SELECT region, COUNT(*) AS n FROM orders_safe GROUP BY region")
-    assert r.status_code == 200
-    body = r.json()
+    body = post("SELECT region, COUNT(*) AS n FROM orders_safe GROUP BY region").json()
     assert body["status"] == "ok" and body["row_count"] == 3
 
 
@@ -29,6 +37,8 @@ def test_valid_edit_runs():
     "SELECT * FROM information_schema.tables",
     "UPDATE orders_safe SET total = 0",
 ])
+
+
 def test_attacks_through_the_edit_endpoint_are_rejected(sql):
     body = post(sql).json()
     assert body["status"] in ("rejected", "error")

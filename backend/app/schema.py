@@ -25,18 +25,18 @@ Data covers roughly the last 2 years of orders.
 """.strip()
 
 
-_range_cache: str | None = None
+_range_cache: dict = {}
 
 
-def data_range_note() -> str:
-    """Look up the real order date range once (through the validated, read-only path)."""
-    global _range_cache
-    if _range_cache is None:
+def data_range_note(role=None) -> str:
+    from app.roles import DEFAULT_ROLE
+    role = role or DEFAULT_ROLE
+    if role.name not in _range_cache:
         try:
             from app.executor import run_query
-            r = run_query("SELECT MIN(order_date), MAX(order_date) FROM orders_safe")
+            r = run_query("SELECT MIN(order_date), MAX(order_date) FROM orders_safe", role)
             lo, hi = r["rows"][0]
-            _range_cache = f"Orders span {lo} to {hi}."
+            _range_cache[role.name] = f"Orders span {lo} to {hi}."
         except Exception:
             return "Orders cover roughly the last 2 years."
-    return _range_cache
+    return _range_cache[role.name]

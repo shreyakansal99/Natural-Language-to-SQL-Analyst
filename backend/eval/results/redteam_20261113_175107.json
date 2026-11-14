@@ -1,0 +1,402 @@
+[
+  {
+    "layer": "2 validator",
+    "id": "V01",
+    "category": "sql payload",
+    "text": "SELECT * FROM orders_safe; DROP TABLE orders_safe;",
+    "passed": true,
+    "detail": "rejected: Exactly one statement is allowed"
+  },
+  {
+    "layer": "2 validator",
+    "id": "V02",
+    "category": "sql payload",
+    "text": "SELECT 1; /* hi */ DELETE FROM customers_safe",
+    "passed": true,
+    "detail": "rejected: Exactly one statement is allowed"
+  },
+  {
+    "layer": "2 validator",
+    "id": "V03",
+    "category": "sql payload",
+    "text": "sElEcT * fRoM orders_safe;dRoP/**/tAbLe orders_safe",
+    "passed": true,
+    "detail": "rejected: Exactly one statement is allowed"
+  },
+  {
+    "layer": "2 validator",
+    "id": "V04",
+    "category": "sql payload",
+    "text": "WITH x AS (SELECT * FROM users_credentials) SELECT * FROM x",
+    "passed": true,
+    "detail": "rejected: Table not allowed: users_credentials"
+  },
+  {
+    "layer": "2 validator",
+    "id": "V05",
+    "category": "sql payload",
+    "text": "SELECT * FROM orders_safe UNION SELECT * FROM users_credentials",
+    "passed": true,
+    "detail": "rejected: Only SELECT queries are allowed"
+  },
+  {
+    "layer": "2 validator",
+    "id": "V06",
+    "category": "sql payload",
+    "text": "SELECT (SELECT password_hash FROM users_credentials LIMIT 1)",
+    "passed": true,
+    "detail": "rejected: Table not allowed: users_credentials"
+  },
+  {
+    "layer": "2 validator",
+    "id": "V07",
+    "category": "sql payload",
+    "text": "SELECT /*! SLEEP(5) */ 1",
+    "passed": true,
+    "detail": "rejected: Executable comments are not allowed"
+  },
+  {
+    "layer": "2 validator",
+    "id": "V08",
+    "category": "sql payload",
+    "text": "SELECT 1 /*!50000 UNION SELECT password_hash FROM users_credentials */",
+    "passed": true,
+    "detail": "rejected: Executable comments are not allowed"
+  },
+  {
+    "layer": "2 validator",
+    "id": "V09",
+    "category": "sql payload",
+    "text": "SELECT SLEEP(10)",
+    "passed": true,
+    "detail": "rejected: Function not allowed: SLEEP"
+  },
+  {
+    "layer": "2 validator",
+    "id": "V10",
+    "category": "sql payload",
+    "text": "SELECT BENCHMARK(100000000, MD5('a'))",
+    "passed": true,
+    "detail": "rejected: Function not allowed: BENCHMARK"
+  },
+  {
+    "layer": "2 validator",
+    "id": "V11",
+    "category": "sql payload",
+    "text": "SELECT LOAD_FILE('/etc/passwd')",
+    "passed": true,
+    "detail": "rejected: Function not allowed: LOAD_FILE"
+  },
+  {
+    "layer": "2 validator",
+    "id": "V12",
+    "category": "sql payload",
+    "text": "SELECT * FROM orders_safe INTO OUTFILE '/tmp/x'",
+    "passed": true,
+    "detail": "rejected: Could not parse the SQL"
+  },
+  {
+    "layer": "2 validator",
+    "id": "V13",
+    "category": "sql payload",
+    "text": "SELECT * FROM orders_safe FOR UPDATE",
+    "passed": true,
+    "detail": "rejected: This query uses a forbidden construct"
+  },
+  {
+    "layer": "2 validator",
+    "id": "V14",
+    "category": "sql payload",
+    "text": "SELECT @@version",
+    "passed": true,
+    "detail": "rejected: This query uses a forbidden construct"
+  },
+  {
+    "layer": "2 validator",
+    "id": "V15",
+    "category": "sql payload",
+    "text": "SELECT USER()",
+    "passed": true,
+    "detail": "rejected: Function not allowed: USER"
+  },
+  {
+    "layer": "2 validator",
+    "id": "V16",
+    "category": "sql payload",
+    "text": "SELECT * FROM information_schema.tables",
+    "passed": true,
+    "detail": "rejected: Table not allowed: information_schema.tables"
+  },
+  {
+    "layer": "2 validator",
+    "id": "V17",
+    "category": "sql payload",
+    "text": "SELECT * FROM mysql.user",
+    "passed": true,
+    "detail": "rejected: Table not allowed: mysql.user"
+  },
+  {
+    "layer": "2 validator",
+    "id": "V18",
+    "category": "sql payload",
+    "text": "SELECT * FROM shop.users_credentials",
+    "passed": true,
+    "detail": "rejected: Table not allowed: shop.users_credentials"
+  },
+  {
+    "layer": "2 validator",
+    "id": "V19",
+    "category": "sql payload",
+    "text": "UPDATE orders_safe SET total = 0",
+    "passed": true,
+    "detail": "rejected: Only SELECT queries are allowed"
+  },
+  {
+    "layer": "2 validator",
+    "id": "V20",
+    "category": "sql payload",
+    "text": "SET GLOBAL read_only = 0",
+    "passed": true,
+    "detail": "rejected: Only SELECT queries are allowed"
+  },
+  {
+    "layer": "2b edit API",
+    "id": "E01",
+    "category": "sql payload",
+    "text": "SELECT * FROM orders_safe; DROP TABLE orders_safe;",
+    "passed": true,
+    "detail": "status=rejected"
+  },
+  {
+    "layer": "2b edit API",
+    "id": "E02",
+    "category": "sql payload",
+    "text": "SELECT 1; /* hi */ DELETE FROM customers_safe",
+    "passed": true,
+    "detail": "status=rejected"
+  },
+  {
+    "layer": "2b edit API",
+    "id": "E03",
+    "category": "sql payload",
+    "text": "sElEcT * fRoM orders_safe;dRoP/**/tAbLe orders_safe",
+    "passed": true,
+    "detail": "status=rejected"
+  },
+  {
+    "layer": "2b edit API",
+    "id": "E04",
+    "category": "sql payload",
+    "text": "WITH x AS (SELECT * FROM users_credentials) SELECT * FROM x",
+    "passed": true,
+    "detail": "status=rejected"
+  },
+  {
+    "layer": "2b edit API",
+    "id": "E05",
+    "category": "sql payload",
+    "text": "SELECT * FROM orders_safe UNION SELECT * FROM users_credentials",
+    "passed": true,
+    "detail": "status=rejected"
+  },
+  {
+    "layer": "2b edit API",
+    "id": "E06",
+    "category": "sql payload",
+    "text": "SELECT (SELECT password_hash FROM users_credentials LIMIT 1)",
+    "passed": true,
+    "detail": "status=rejected"
+  },
+  {
+    "layer": "2b edit API",
+    "id": "E07",
+    "category": "sql payload",
+    "text": "SELECT /*! SLEEP(5) */ 1",
+    "passed": true,
+    "detail": "status=rejected"
+  },
+  {
+    "layer": "2b edit API",
+    "id": "E08",
+    "category": "sql payload",
+    "text": "SELECT 1 /*!50000 UNION SELECT password_hash FROM users_credentials */",
+    "passed": true,
+    "detail": "status=rejected"
+  },
+  {
+    "layer": "2b edit API",
+    "id": "E09",
+    "category": "sql payload",
+    "text": "SELECT SLEEP(10)",
+    "passed": true,
+    "detail": "status=rejected"
+  },
+  {
+    "layer": "2b edit API",
+    "id": "E10",
+    "category": "sql payload",
+    "text": "SELECT BENCHMARK(100000000, MD5('a'))",
+    "passed": true,
+    "detail": "status=rejected"
+  },
+  {
+    "layer": "2b edit API",
+    "id": "E11",
+    "category": "sql payload",
+    "text": "SELECT LOAD_FILE('/etc/passwd')",
+    "passed": true,
+    "detail": "status=rejected"
+  },
+  {
+    "layer": "2b edit API",
+    "id": "E12",
+    "category": "sql payload",
+    "text": "SELECT * FROM orders_safe INTO OUTFILE '/tmp/x'",
+    "passed": true,
+    "detail": "status=rejected"
+  },
+  {
+    "layer": "2b edit API",
+    "id": "E13",
+    "category": "sql payload",
+    "text": "SELECT * FROM orders_safe FOR UPDATE",
+    "passed": true,
+    "detail": "status=rejected"
+  },
+  {
+    "layer": "2b edit API",
+    "id": "E14",
+    "category": "sql payload",
+    "text": "SELECT @@version",
+    "passed": true,
+    "detail": "status=rejected"
+  },
+  {
+    "layer": "2b edit API",
+    "id": "E15",
+    "category": "sql payload",
+    "text": "SELECT USER()",
+    "passed": true,
+    "detail": "status=rejected"
+  },
+  {
+    "layer": "2b edit API",
+    "id": "E16",
+    "category": "sql payload",
+    "text": "SELECT * FROM information_schema.tables",
+    "passed": true,
+    "detail": "status=rejected"
+  },
+  {
+    "layer": "2b edit API",
+    "id": "E17",
+    "category": "sql payload",
+    "text": "SELECT * FROM mysql.user",
+    "passed": true,
+    "detail": "status=rejected"
+  },
+  {
+    "layer": "2b edit API",
+    "id": "E18",
+    "category": "sql payload",
+    "text": "SELECT * FROM shop.users_credentials",
+    "passed": true,
+    "detail": "status=rejected"
+  },
+  {
+    "layer": "2b edit API",
+    "id": "E19",
+    "category": "sql payload",
+    "text": "UPDATE orders_safe SET total = 0",
+    "passed": true,
+    "detail": "status=rejected"
+  },
+  {
+    "layer": "2b edit API",
+    "id": "E20",
+    "category": "sql payload",
+    "text": "SET GLOBAL read_only = 0",
+    "passed": true,
+    "detail": "status=rejected"
+  },
+  {
+    "layer": "3 database",
+    "id": "D01",
+    "category": "sql payload",
+    "text": "DROP TABLE shop.customers",
+    "passed": true,
+    "detail": "refused by MySQL"
+  },
+  {
+    "layer": "3 database",
+    "id": "D02",
+    "category": "sql payload",
+    "text": "DROP VIEW orders_safe",
+    "passed": true,
+    "detail": "refused by MySQL"
+  },
+  {
+    "layer": "3 database",
+    "id": "D03",
+    "category": "sql payload",
+    "text": "DELETE FROM orders_safe",
+    "passed": true,
+    "detail": "refused by MySQL"
+  },
+  {
+    "layer": "3 database",
+    "id": "D04",
+    "category": "sql payload",
+    "text": "UPDATE orders_safe SET total = 0",
+    "passed": true,
+    "detail": "refused by MySQL"
+  },
+  {
+    "layer": "3 database",
+    "id": "D05",
+    "category": "sql payload",
+    "text": "INSERT INTO orders_safe (id) VALUES (999999)",
+    "passed": true,
+    "detail": "refused by MySQL"
+  },
+  {
+    "layer": "3 database",
+    "id": "D06",
+    "category": "sql payload",
+    "text": "CREATE TABLE evil (a INT)",
+    "passed": true,
+    "detail": "refused by MySQL"
+  },
+  {
+    "layer": "3 database",
+    "id": "D07",
+    "category": "sql payload",
+    "text": "TRUNCATE TABLE shop.orders",
+    "passed": true,
+    "detail": "refused by MySQL"
+  },
+  {
+    "layer": "3 database",
+    "id": "D08",
+    "category": "sql payload",
+    "text": "SELECT * FROM shop.users_credentials",
+    "passed": true,
+    "detail": "refused by MySQL"
+  },
+  {
+    "layer": "3 database",
+    "id": "D09",
+    "category": "sql payload",
+    "text": "GRANT ALL PRIVILEGES ON *.* TO 'nl_reader'@'localhost'",
+    "passed": true,
+    "detail": "refused by MySQL"
+  },
+  {
+    "layer": "integrity",
+    "id": "I01",
+    "category": "tamper check",
+    "text": "table checksums before vs after",
+    "passed": true,
+    "detail": "unchanged"
+  }
+]

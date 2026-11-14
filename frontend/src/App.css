@@ -62,3 +62,9 @@ button.secondary { background: #8883; color: inherit; border: 1px solid #8884; }
   background: #2563eb22; border-left: 3px solid #2563eb; padding: 8px 12px;
   border-radius: 4px; font-size: 14px; margin: 0 0 10px;
 }
+
+.userbar { display: flex; justify-content: flex-end; align-items: center; gap: 10px; font-size: 14px; margin-bottom: 8px; }
+.userbar button { padding: 4px 10px; }
+.login { display: flex; flex-direction: column; gap: 10px; max-width: 360px; }
+.login input { padding: 10px 12px; font: inherit; border-radius: 8px; border: 1px solid #8884; background: transparent; color: inherit; }
+.login button { padding: 10px; }

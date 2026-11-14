@@ -19,9 +19,10 @@ import pymysql
 from fastapi.testclient import TestClient
 from app.main import app
 from app import pipeline
-from app.config import ADMIN_PASSWORD, ADMIN_USER, DB_HOST, DB_NAME, DB_PORT
+from app.config import ADMIN_PASSWORD, ADMIN_USER, DB_HOST, DB_NAME, DB_PORT, DEMO_PASSWORD
 from app.executor import ExecutionError, _execute
 from app.validator import ValidationError, validate
+
 
 RESULTS_DIR = Path(__file__).resolve().parent / "results"
 B64 = base64.b64encode(b"SELECT * FROM users_credentials").decode()
@@ -173,9 +174,12 @@ def layer2():
 
 def layer2b():
     client = TestClient(app)
+    login = client.post("/login", json={"username": "alex", "password": DEMO_PASSWORD})
+    token = login.json()["token"]
+    hdrs = {"Authorization": f"Bearer {token}"}
     out = []
     for n, sql in enumerate(VALIDATOR_PAYLOADS, 1):
-        body = client.post("/run-sql", json={"sql": sql}).json()
+        body = client.post("/run-sql", json={"sql": sql}, headers=hdrs).json()
         passed = body.get("status") in ("rejected", "error") and "rows" not in body
         out.append({"layer": "2b edit API", "id": f"E{n:02d}", "category": "sql payload",
                     "text": sql[:70], "passed": passed, "detail": f"status={body.get('status')}"})

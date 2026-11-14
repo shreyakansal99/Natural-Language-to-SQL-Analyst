@@ -11,7 +11,8 @@ import time
 
 import pymysql
 
-from app.config import (ANALYTICS_DB, DB_HOST, DB_PORT, MAX_ROWS, NL_READER_PASSWORD, STATEMENT_TIMEOUT_MS)
+from app.config import DB_HOST, DB_PORT, MAX_ROWS, STATEMENT_TIMEOUT_MS
+from app.roles import DEFAULT_ROLE
 from app.validator import validate
 
 log = logging.getLogger("executor")
@@ -21,17 +22,14 @@ class ExecutionError(Exception):
     """Query failed at run time. The message is safe to show to the user."""
 
 
-def _connect(timeout_ms: int):
+def _connect(role, timeout_ms: int):
     return pymysql.connect(
         host=DB_HOST, port=DB_PORT,
-        user="nl_reader", password=NL_READER_PASSWORD,
-        database=ANALYTICS_DB,
+        user=role.db_user, password=role.db_password, database=role.db,
         autocommit=True,
         connect_timeout=5,
-        read_timeout=timeout_ms // 1000 + 2,   # client-side backstop
+        read_timeout=timeout_ms // 1000 + 2,
         write_timeout=5,
-        # Session settings. PyMySQL does NOT enable multi-statements by default,
-        # so "SELECT 1; DROP ..." fails at the driver as well.
         init_command=("SET SESSION transaction_read_only=1, "
                       f"SESSION max_execution_time={int(timeout_ms)}"),
     )
@@ -49,12 +47,12 @@ def _jsonable(value):
     return value
 
 
-def _execute(safe_sql: str, timeout_ms: int) -> dict:
-    """Run SQL that has ALREADY been validated. Internal: call run_query()."""
+def _execute(safe_sql: str, timeout_ms: int, role=None) -> dict:
+    role = role or DEFAULT_ROLE
     started = time.monotonic()
     conn = None
     try:
-        conn = _connect(timeout_ms)
+        conn = _connect(role, timeout_ms)
         with conn.cursor() as cur:
             cur.execute(safe_sql)
             columns = [d[0] for d in cur.description] if cur.description else []
@@ -87,10 +85,7 @@ def _execute(safe_sql: str, timeout_ms: int) -> dict:
     }
 
 
-def run_query(sql: str) -> dict:
-    """Validate, then execute. The only function the rest of the app calls.
-
-    Raises ValidationError (bad SQL) or ExecutionError (runtime failure).
-    """
-    safe_sql = validate(sql)      # returns the regenerated, LIMIT-capped SQL
-    return _execute(safe_sql, STATEMENT_TIMEOUT_MS)
+def run_query(sql: str, role=None) -> dict:
+    role = role or DEFAULT_ROLE
+    safe_sql = validate(sql, role)
+    return _execute(safe_sql, STATEMENT_TIMEOUT_MS, role)

@@ -8,7 +8,8 @@ import sqlglot
 from sqlglot import exp
 from sqlglot.errors import SqlglotError
 
-from app.config import ANALYTICS_DB, MAX_ROWS
+from app.config import MAX_ROWS
+from app.roles import DEFAULT_ROLE
 
 MAX_SQL_CHARS = 2000
 MAX_JOINS = 5
@@ -54,8 +55,8 @@ def _function_name(node: exp.Expression) -> str:
         return str(node.name).upper()
     return node.sql_name().upper()
 
-
-def validate(sql: str) -> str:
+def validate(sql: str, role=None) -> str:
+    role = role or DEFAULT_ROLE
     if not isinstance(sql, str) or not sql.strip():
         raise ValidationError("Empty query")
     if len(sql) > MAX_SQL_CHARS:
@@ -95,9 +96,9 @@ def validate(sql: str) -> str:
         name = table.name.lower()
         db = table.db.lower() if table.db else ""
         if db:
-            if db != ANALYTICS_DB.lower() or name not in ALLOWED_TABLES:
+            if db != role.db.lower() or name not in role.tables:
                 raise ValidationError(f"Table not allowed: {db}.{name}")
-        elif name not in ALLOWED_TABLES and name not in cte_names:
+        elif name not in role.tables and name not in cte_names:
             raise ValidationError(f"Table not allowed: {name}")
 
     # 5. Function allowlist

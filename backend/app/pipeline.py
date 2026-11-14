@@ -10,6 +10,8 @@ from app.guardrails import GuardrailRefusal, check_question, redact_text, redact
 from app.llm import generate_json, generate_text
 from app.prompts import EXPLAIN_SYSTEM_PROMPT, build_sql_system_prompt, build_user_message
 from app.validator import ValidationError
+from contextvars import ContextVar
+from app.roles import DEFAULT_ROLE
 
 log = logging.getLogger("pipeline")
 
@@ -17,6 +19,8 @@ MAX_ATTEMPTS = 3          # first try + 2 retries
 PREVIEW_ROWS = 20
 AUDIT_FILE = Path(__file__).resolve().parent.parent / "logs" / "audit.jsonl"
 STATUS_WORDS = ("cancel", "refund", "complet", "ship", "pending", "status")
+
+_ctx: ContextVar = ContextVar("ctx", default={"user": "anonymous", "role": "analyst"})
 
 
 def _hidden_filter_note(question: str, sql: str) -> str | None:
@@ -35,7 +39,7 @@ def _audit(entry: dict) -> None:
         log.exception("could not write audit log")
 
 
-def audit_edit(sql: str, status: str, row_count: int, ms: int, rule: str | None = None) -> None:
+def audit_edit(sql, status, row_count, ms, rule=None, user="anonymous", role="analyst"):
     _audit({
         "ts": datetime.now(timezone.utc).isoformat(),
         "source": "user_edit",
@@ -44,6 +48,8 @@ def audit_edit(sql: str, status: str, row_count: int, ms: int, rule: str | None 
         "sql": sql[:2000],
         "row_count": row_count,
         "ms": ms,
+        "user": user, 
+        "role": role
     })
 
 
@@ -61,6 +67,8 @@ def _finish(question, started, status, **fields) -> dict:
         "attempts": result["attempts"],
         "row_count": result["row_count"],
         "ms": int((time.monotonic() - started) * 1000),
+        "user": _ctx.get()["user"],
+        "role": _ctx.get()["role"],
     })
     result.pop("guardrail", None)
     return result
@@ -91,7 +99,9 @@ def _explain(question: str, res: dict) -> str:
         return "The query succeeded, but I couldn't write an explanation this time."
 
 
-def answer(raw_question: str) -> dict:
+def answer(raw_question: str, role=None, username: str = "anonymous") -> dict:
+    role = role or DEFAULT_ROLE
+    _ctx.set({"user": username, "role": role.name})
     started = time.monotonic()
 
     try:
@@ -103,7 +113,7 @@ def answer(raw_question: str) -> dict:
     attempts = 0
     for attempts in range(1, MAX_ATTEMPTS + 1):
         try:
-            plan = generate_json(build_sql_system_prompt(), build_user_message(question, feedback))
+            plan = generate_json(build_sql_system_prompt(role), build_user_message(question, feedback))
         except Exception:
             log.exception("LLM call failed")
             return _finish(question, started, "error", attempts=attempts,
@@ -125,7 +135,7 @@ def answer(raw_question: str) -> dict:
             continue
 
         try:
-            result = run_query(sql)           # validates, then executes
+            result = run_query(sql, role)          # validates, then executes
             note = _hidden_filter_note(question, result["sql"])
             if note and attempts < MAX_ATTEMPTS:
                 feedback = ("Your query filters on order status, but the question did not ask for that. "
